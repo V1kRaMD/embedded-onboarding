@@ -176,112 +176,91 @@ functions
  *         the configuration information for the specified GPIO peripheral.
  * @retval None
  */
-void HAL_GPIO_Init(GPIO_TypeDef *GPIOx, GPIO_InitTypeDef *GPIO_Init) {
+void HAL_GPIO_Init (GPIO_TypeDef *GPIOx, GPIO_InitTypeDef *GPIO_Init) {
   uint32_t position = 0x00u;
   uint32_t iocurrent;
   uint32_t temp;
 
-  /* Check the parameters */
   assert_param(IS_GPIO_ALL_INSTANCE(GPIOx));
-  assert_param(IS_GPIO_PIN(GPIO_Init->Pin));
-  assert_param(IS_GPIO_MODE(GPIO_Init->Mode));
+  assert_param(IS_GPIO_PIN(GPIO_Init -> Pin));
+  assert_param(IS_GPIO_MODE(GPIO_Init -> Mode));
 
-  /* Configure the port pins */
-  while (((GPIO_Init->Pin) >> position) != 0x00u) {
-    /* Get current io position */
-    iocurrent = (GPIO_Init->Pin) & (1uL << position);
+  while (((GPIO_Init -> Pin) >> position) != 0x00u) {
+    iocurrent = (GPIO_Init -> Pin) & (1uL << position);
 
     if (iocurrent != 0x00u) {
-      /*--------------------- GPIO Mode Configuration ------------------------*/
-      /* In case of Output or Alternate function mode selection */
-      if (((GPIO_Init->Mode & GPIO_MODE) == MODE_OUTPUT) ||
-          ((GPIO_Init->Mode & GPIO_MODE) == MODE_AF)) {
-        /* Check the Speed parameter */
-        assert_param(IS_GPIO_SPEED(GPIO_Init->Speed));
-        /* Configure the IO Speed */
-        temp = GPIOx->OSPEEDR;
+      if (((GPIO_Init -> Mode & GPIO_MODE) == MODE_OUTPUT) || ((GPIO_Init -> Mode & GPIO_MODE) == MODE_AF)) {
+        assert_param(IS_GPIO_SPEED(GPIO_Init -> Speed));
+        temp = GPIOx -> OSPEEDR;
         temp &= ~(GPIO_OSPEEDER_OSPEEDR0 << (position * 2u));
-        temp |= (GPIO_Init->Speed << (position * 2u));
-        GPIOx->OSPEEDR = temp;
+        temp |= (GPIO_Init -> Speed << (position * 2u));
+        GPIOx -> OSPEEDR = temp;
 
-        /* Configure the IO Output Type */
-        temp = GPIOx->OTYPER;
+        temp = GPIOx -> OTYPER;
         temp &= ~(GPIO_OTYPER_OT_0 << position);
-        temp |=
-            (((GPIO_Init->Mode & OUTPUT_TYPE) >> OUTPUT_TYPE_Pos) << position);
-        GPIOx->OTYPER = temp;
+        temp |= (((GPIO_Init -> Mode & OUTPUT_TYPE) >> OUTPUT_TYPE_Pos) << position);
+        GPIOx -> OTYPER = temp;
       }
 
-      if ((GPIO_Init->Mode & GPIO_MODE) != MODE_ANALOG) {
-        /* Check the Pull parameter */
-        assert_param(IS_GPIO_PULL(GPIO_Init->Pull));
+      if ((GPIO_Init -> Mode & GPIO_MODE) != MODE_ANALOG) {
+        assert_param(IS_GPIO_PULL(GPIO_Init -> Pull));
 
-        /* Activate the Pull-up or Pull down resistor for the current IO */
-        temp = GPIOx->PUPDR;
+        temp = GPIOx -> PUPDR;
         temp &= ~(GPIO_PUPDR_PUPDR0 << (position * 2u));
-        temp |= ((GPIO_Init->Pull) << (position * 2u));
-        GPIOx->PUPDR = temp;
+        temp |= (((GPIO_Init -> Pull) >> OUTPUT_TYPE_Pos) << position);
+        GPIOx -> PUPDR = temp;
       }
 
-      /* In case of Alternate function mode selection */
-      if ((GPIO_Init->Mode & GPIO_MODE) == MODE_AF) {
-        /* Check the Alternate function parameters */
+      if ((GPIO_Init -> Mode & GPIO_MODE) == MODE_AF) {
         assert_param(IS_GPIO_AF_INSTANCE(GPIOx));
-        assert_param(IS_GPIO_AF(GPIO_Init->Alternate));
+        assert_param(IS_GPIO_AF(GPIO_Init -> Alternate));
 
-        /* Configure Alternate function mapped with the current IO */
-        temp = GPIOx->AFR[position >> 3u];
+        temp = GPIOx -> AFR[position >> 3u];
         temp &= ~(0xFu << ((position & 0x07u) * 4u));
-        temp |= ((GPIO_Init->Alternate) << ((position & 0x07u) * 4u));
-        GPIOx->AFR[position >> 3u] = temp;
+        temp |= (((GPIO_Init -> Alternate) >> OUTPUT_TYPE_Pos) << position);
+        GPIOx -> AFR[position >> 3u] = temp;
       }
 
-      /* Configure IO Direction mode (Input, Output, Alternate or Analog) */
-      temp = GPIOx->MODER;
+      temp = GPIOx -> MODER;
       temp &= ~(GPIO_MODER_MODER0 << (position * 2u));
-      temp |= ((GPIO_Init->Mode & GPIO_MODE) << (position * 2u));
-      GPIOx->MODER = temp;
+      temp |= ((GPIO_Init -> Mode & GPIO_MODE) << (position * 2u));
+      GPIOx -> MODER = temp;
 
-      /*--------------------- EXTI Mode Configuration ------------------------*/
-      /* Configure the External Interrupt or event for the current IO */
-      if ((GPIO_Init->Mode & EXTI_MODE) != 0x00u) {
-        /* Enable SYSCFG Clock */
+      if ((GPIO_Init -> Mode & EXTI_MODE) != 0x00u) {
         __HAL_RCC_SYSCFG_CLK_ENABLE();
 
-        temp = SYSCFG->EXTICR[position >> 2u];
+        temp = SYSCFG -> EXTICR[position >> 2u];
         temp &= ~(0x0FuL << (4u * (position & 0x03u)));
         temp |= (GPIO_GET_INDEX(GPIOx) << (4u * (position & 0x03u)));
-        SYSCFG->EXTICR[position >> 2u] = temp;
+        SYSCFG -> EXTICR[position >> 2u] = temp;
 
-        /* Clear Rising Falling edge configuration */
-        temp = EXTI->RTSR;
+        temp = EXTI -> RTSR;
         temp &= ~(iocurrent);
-        if ((GPIO_Init->Mode & TRIGGER_RISING) != 0x00u) {
+        if ((GPIO_Init -> Mode & TRIGGER_RISING) != 0x00u) {
           temp |= iocurrent;
         }
-        EXTI->RTSR = temp;
+        EXTI -> RTSR = temp;
 
-        temp = EXTI->FTSR;
+        temp = EXTI -> FTSR;
         temp &= ~(iocurrent);
-        if ((GPIO_Init->Mode & TRIGGER_FALLING) != 0x00u) {
+        if ((GPIO_Init -> Mode & TRIGGER_FALLING) != 0x00u) {
           temp |= iocurrent;
         }
-        EXTI->FTSR = temp;
+        EXTI -> FTSR = temp;
 
-        /* Clear EXTI line configuration */
-        temp = EXTI->EMR;
+        temp = EXTI -> EMR;
         temp &= ~(iocurrent);
-        if ((GPIO_Init->Mode & EXTI_EVT) != 0x00u) {
+        if ((GPIO_Init -> Mode & EXTI_EVT) != 0x00u) {
           temp |= iocurrent;
         }
-        EXTI->EMR = temp;
+        EXTI -> EMR = temp;
 
-        temp = EXTI->IMR;
+        temp = EXTI -> IMR;
         temp &= ~(iocurrent);
-        if ((GPIO_Init->Mode & EXTI_IT) != 0x00u) {
+        if ((GPIO_Init -> Mode & EXTI_IT) != 0x00u) {
           temp |= iocurrent;
         }
-        EXTI->IMR = temp;
+        EXTI -> IMR = temp;
       }
     }
 
