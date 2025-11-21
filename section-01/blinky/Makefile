@@ -60,10 +60,12 @@ Core/Src/syscalls.c
 
 # ASM sources
 ASM_SOURCES =  \
-startup_stm32f030x8.s
+startup_stm32f030x8.s \
+Core/Src/gpio.s 
 
 # ASM sources
-ASMM_SOURCES = 
+ASMM_SOURCES =  
+
 
 
 #######################################
