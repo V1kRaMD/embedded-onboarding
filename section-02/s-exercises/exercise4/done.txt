@@ -1,0 +1,13 @@
+the flag is:
+flag{arm_nm_gdb_master}
+
+what I ran:
+nm vault.elf | grep "flag"
+gdb vault.elf
+print secret_flag
+
+what each of these commands do:
+when I ran "nm vault.elf" it gave me a huge list of symbols and stuff, so I pipelined it using grep to find something with flag
+it gave me two results and one literally said "secret_flag" so I just assumed that was what I was looking for
+"gdb vault.elf" just opens the debugger with vault.elf
+and in the gdb session I just printed whatever was stored in secret_flag, which was the flag
